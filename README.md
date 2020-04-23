@@ -1,4 +1,4 @@
-# netlify-cms-widget-multiple-relation
+```# netlify-cms-widget-multiple-relation
 Netlify cms Multiple relation widget
 
 This widget is meant to help does who want to select through more then one collation at Relation widget of netlify cms
@@ -37,3 +37,4 @@ If you want to add an extra option to the relation you can add it like this
   searchFields: ['title']
   displayFields: ['title']
   valueField: 'title'
+ ```
