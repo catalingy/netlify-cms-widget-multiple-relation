@@ -9,7 +9,7 @@
     "starter",
     "boilerplate"
   ],
-  "version": "0.0.1",
+  "version": "0.0.2",
   "homepage": "https://github.com/catalingy/netlify-cms-widget-multiple-relation",
   "license": "MIT",
   "main": "dist/main.js",
