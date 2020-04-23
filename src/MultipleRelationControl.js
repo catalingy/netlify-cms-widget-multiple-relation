@@ -6,9 +6,18 @@ import Select from "react-select";
 function optionToString(option) {
   return option && option.value ? option.value : "";
 }
-function optionToJson(option, relation) {
+function optionToJson(option, relation, extraOption) {
+  if (extraOption == null) {
+    return option && option.value && relation && relation.value
+      ? { label: relation.value, value: option.value }
+      : "";
+  }
   return option && option.value && relation && relation.value
-    ? { label: relation.value, value: option.value }
+    ? {
+        label: relation.value,
+        value: option.value,
+        extraOption: extraOption.value,
+      }
     : "";
 }
 function getSelectedValue(value, options) {
@@ -17,13 +26,22 @@ function getSelectedValue(value, options) {
       return options[index];
     }
   }
-  return '';
+  return "";
 }
 function convertToOption(raw) {
   if (typeof raw === "string") {
     return { label: raw, value: raw };
   }
-  return { label: raw.get("label"), value: raw.get("value") };
+  try {
+    return {
+      label: raw.get("label"),
+      value: raw.get("value"),
+      extraOptionName: raw.get("extraOptionName"),
+      extraOptions: raw.get("extraOptions"),
+    };
+  } catch (Error) {
+    return { label: raw.get("label"), value: raw.get("value") };
+  }
 }
 
 export default class RelationControl extends React.Component {
@@ -34,6 +52,7 @@ export default class RelationControl extends React.Component {
   allOptions = [];
   valueCollation = { label: "", value: "" };
   collectionName = { label: "", value: "" };
+  valueExtra = null;
   static propTypes = {
     onChange: PropTypes.func.isRequired,
     forID: PropTypes.string.isRequired,
@@ -48,17 +67,35 @@ export default class RelationControl extends React.Component {
   };
   constructor(props) {
     super(props);
-    const { field, value} = props;
+    const { field, value } = props;
     if (typeof value == "object" && value != null) {
       const fieldOptions = field.get("options");
       const optionsCollation = [...fieldOptions.map(convertToOption)];
       let getVal = "";
+      let getExtra = null;
       try {
         getVal = value.get("label");
       } catch (Error) {
         getVal = value.label;
       }
-      this.valueCollation = getSelectedValue(getVal, optionsCollation);
+      try {
+        getExtra = value.get("extraOption");
+      } catch (Error) {
+        try {
+          getExtra = value.extraOption;
+        } catch (Error) {
+          getExtra = null;
+        }
+      }
+      if (typeof getVal != "undefined") {
+        this.valueCollation = getSelectedValue(getVal, optionsCollation);
+        const optionsExtra = this.valueCollation.extraOptions
+          ? this.valueCollation.extraOptions
+          : [];
+        if (getExtra !== null && typeof getExtra != "undefined") {
+          this.valueExtra = getSelectedValue(getExtra, [...optionsExtra.map(convertToOption)]);
+        }
+      }
     }
     if (this.initSelect == false) {
       this.reloadOptions();
@@ -81,16 +118,30 @@ export default class RelationControl extends React.Component {
   handleChangeCollection = (selectedOption) => {
     const { onChange } = this.props;
     this.valueCollation = selectedOption;
-    onChange(optionToString(selectedOption));
+    onChange(
+      optionToJson(this.collectionName, this.valueCollation, this.valueExtra)
+    );
     this.collectionName = [];
     this.reloadOptions();
+  };
+  handleChangeExtra = (selectedOption) => {
+    const { onChange } = this.props;
+    this.valueExtra = selectedOption;
+    onChange(
+      optionToJson(this.collectionName, this.valueCollation, this.valueExtra)
+    );
+    this.forceUpdate();
   };
 
   handleChange = (selectedOption) => {
     const { onChange } = this.props;
     let value;
     this.collectionName = selectedOption;
-    value = optionToJson(this.collectionName, this.valueCollation);
+    value = optionToJson(
+      this.collectionName,
+      this.valueCollation,
+      this.valueExtra
+    );
     onChange(value);
   };
 
@@ -156,7 +207,8 @@ export default class RelationControl extends React.Component {
         this.initSelect = true;
         value = optionToJson(
           this.collectionName,
-          this.valueCollation
+          this.valueCollation,
+          this.valueExtra
         );
         onChange(value);
       }
@@ -182,6 +234,12 @@ export default class RelationControl extends React.Component {
       );
     }
     const optionsCollation = [...fieldOptions.map(convertToOption)];
+    const optionsExtra = this.valueCollation.extraOptions
+      ? [...this.valueCollation.extraOptions.map(convertToOption)]
+      : [];
+    const fieldExtraName = this.valueCollation.extraOptionName
+      ? this.valueCollation.extraOptionName
+      : "";
     return (
       <div>
         <Select
@@ -200,6 +258,24 @@ export default class RelationControl extends React.Component {
           options={this.allOptions}
           placeholder={this.placeholder}
         />
+        {optionsExtra.length > 0 ? (
+          <label class="css-pcief1-FieldLabel-fieldLabel e1j7dp4t0">
+            {fieldExtraName}
+          </label>
+        ) : (
+          ""
+        )}
+        {optionsExtra.length > 0 ? (
+          <Select
+            value={this.valueExtra}
+            options={optionsExtra}
+            onFocus={setActiveStyle}
+            onBlur={setInactiveStyle}
+            onChange={this.handleChangeExtra}
+          />
+        ) : (
+          ""
+        )}
       </div>
     );
   }
