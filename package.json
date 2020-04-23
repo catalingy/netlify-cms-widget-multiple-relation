@@ -1,6 +1,6 @@
 {
-  "name": "netlify-cms-widget-starter",
-  "description": "A boilerplate for creating Netlify CMS widgets.",
+  "name": "netlify-multiple-relation",
+  "description": "A custom widget for netlify-cms to add multiple-relation",
   "keywords": [
     "netlify",
     "netlify-cms",
