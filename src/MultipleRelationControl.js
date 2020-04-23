@@ -48,7 +48,7 @@ export default class RelationControl extends React.Component {
   };
   constructor(props) {
     super(props);
-    const { field, value } = props;
+    const { field, value} = props;
     if (typeof value == "object" && value != null) {
       const fieldOptions = field.get("options");
       const optionsCollation = [...fieldOptions.map(convertToOption)];
@@ -79,7 +79,7 @@ export default class RelationControl extends React.Component {
     if (this.didInitialSearch) return;
   }
   handleChangeCollection = (selectedOption) => {
-    const { onChange, field } = this.props;
+    const { onChange } = this.props;
     this.valueCollation = selectedOption;
     onChange(optionToString(selectedOption));
     this.collectionName = [];
@@ -158,7 +158,7 @@ export default class RelationControl extends React.Component {
           this.collectionName,
           this.valueCollation
         );
-        onChange();
+        onChange(value);
       }
       this.placeholder = "Select ...";
       this.forceUpdate();
